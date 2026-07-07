@@ -105,7 +105,7 @@ export function BookingForm({
       }
 
       toast.success("Booking berhasil dibuat!");
-      router.push("/dashboard/customer");
+      router.push("/dashboard");
       router.refresh();
     } catch {
       toast.error("Terjadi kesalahan saat booking");

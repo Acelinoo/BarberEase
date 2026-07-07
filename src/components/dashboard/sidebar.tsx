@@ -31,27 +31,27 @@ type NavItem = {
 };
 
 const adminNav: NavItem[] = [
-  { title: "Dashboard", href: "/dashboard/admin", icon: LayoutDashboard },
-  { title: "Appointments", href: "/dashboard/admin/appointments", icon: Calendar },
-  { title: "Services", href: "/dashboard/admin/services", icon: Scissors },
-  { title: "Staff", href: "/dashboard/admin/staff", icon: Users },
-  { title: "POS", href: "/dashboard/admin/pos", icon: Receipt },
-  { title: "Transactions", href: "/dashboard/admin/transactions", icon: DollarSign },
-  { title: "Payroll", href: "/dashboard/admin/payroll", icon: ClipboardList },
-  { title: "Settings", href: "/dashboard/admin/settings", icon: Settings },
+  { title: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { title: "Appointments", href: "/admin/appointments", icon: Calendar },
+  { title: "Services", href: "/admin/services", icon: Scissors },
+  { title: "Staff", href: "/admin/staff", icon: Users },
+  { title: "POS", href: "/admin/pos", icon: Receipt },
+  { title: "Transactions", href: "/admin/transactions", icon: DollarSign },
+  { title: "Payroll", href: "/admin/payroll", icon: ClipboardList },
+  { title: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
 const staffNav: NavItem[] = [
-  { title: "Dashboard", href: "/dashboard/staff", icon: LayoutDashboard },
-  { title: "Appointments", href: "/dashboard/staff/appointments", icon: Calendar },
-  { title: "POS", href: "/dashboard/staff/pos", icon: Receipt },
-  { title: "Transactions", href: "/dashboard/staff/transactions", icon: DollarSign },
+  { title: "Dashboard", href: "/staff", icon: LayoutDashboard },
+  { title: "Appointments", href: "/staff/appointments", icon: Calendar },
+  { title: "POS", href: "/staff/pos", icon: Receipt },
+  { title: "Transactions", href: "/staff/transactions", icon: DollarSign },
 ];
 
 const customerNav: NavItem[] = [
-  { title: "Dashboard", href: "/dashboard/customer", icon: LayoutDashboard },
-  { title: "Book", href: "/dashboard/customer/book", icon: Calendar },
-  { title: "My Bookings", href: "/dashboard/customer/bookings", icon: ClipboardList },
+  { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { title: "Book", href: "/booking", icon: Calendar },
+  { title: "My Bookings", href: "/my-bookings", icon: ClipboardList },
 ];
 
 function getNavItems(role: string): NavItem[] {
@@ -124,8 +124,7 @@ export function DashboardSidebar() {
           {navItems.map((item) => {
             const isActive =
               pathname === item.href ||
-              (item.href !== `/dashboard/${(role ?? "customer").toLowerCase()}` &&
-                pathname.startsWith(item.href));
+              pathname.startsWith(`${item.href}/`);
             return (
               <Link
                 key={item.href}

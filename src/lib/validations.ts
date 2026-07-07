@@ -21,7 +21,7 @@ export const serviceSchema = z.object({
   description: z.string().optional(),
   price: z.number().min(0, "Harga tidak boleh negatif"),
   duration: z.number().min(15, "Durasi minimal 15 menit"),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
 });
 
 export type ServiceInput = z.infer<typeof serviceSchema>;
