@@ -1,0 +1,291 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+// ─── Better Auth Models ──────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  role          String    @default("CUSTOMER")
+  phone         String?
+  commissionRate Float    @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  sessions      Session[]
+  accounts      Account[]
+
+  // Staff relations
+  staffAppointments    Appointment[]   @relation("StaffAppointments")
+  staffTransactions    Transaction[]   @relation("StaffTransactions")
+  payrolls             Payroll[]
+  salaryHistories      SalaryHistory[]
+
+  // Customer relations
+  customerAppointments Appointment[]   @relation("CustomerAppointments")
+  customerTransactions Transaction[]   @relation("CustomerTransactions")
+
+  // Activity
+  activityLogs         ActivityLog[]
+
+  @@index([email])
+  @@index([role])
+  @@index([deletedAt])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("verification")
+}
+
+// ─── Business Models ─────────────────────────────────────────
+
+model Service {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  duration    Int       // in minutes
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  appointmentServices AppointmentService[]
+  transactionItems    TransactionItem[]
+
+  @@index([isActive])
+  @@index([deletedAt])
+  @@map("service")
+}
+
+model Appointment {
+  id             String            @id @default(cuid())
+  date           DateTime
+  startTime      String            // "09:00"
+  endTime        String            // "09:30"
+  status         String            @default("PENDING")
+  customerType   String            @default("BOOKING")
+  walkInName     String?           // For walk-in customers
+  walkInPhone    String?
+  notes          String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  deletedAt      DateTime?
+
+  customerId String?
+  customer   User?   @relation("CustomerAppointments", fields: [customerId], references: [id], onDelete: SetNull)
+
+  staffId    String
+  staff      User    @relation("StaffAppointments", fields: [staffId], references: [id], onDelete: Restrict)
+
+  appointmentServices AppointmentService[]
+  transaction         Transaction?
+
+  @@index([date])
+  @@index([staffId, date])
+  @@index([customerId])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("appointment")
+}
+
+model AppointmentService {
+  id            String @id @default(cuid())
+  appointmentId String
+  serviceId     String
+  price         Float  // Snapshot of price at booking time
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  service     Service     @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+
+  @@unique([appointmentId, serviceId])
+  @@index([appointmentId])
+  @@index([serviceId])
+  @@map("appointment_service")
+}
+
+model Transaction {
+  id              String            @id @default(cuid())
+  receiptNumber   String            @unique
+  totalAmount     Float
+  paymentMethod   String            @default("CASH")
+  status          String            @default("PENDING")
+  customerType    String            @default("BOOKING")
+  walkInName      String?
+  walkInPhone     String?
+  commissionRate  Float             @default(0)
+  commissionAmount Float            @default(0)
+  notes           String?
+  paidAt          DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  deletedAt       DateTime?
+
+  staffId       String
+  staff         User          @relation("StaffTransactions", fields: [staffId], references: [id], onDelete: Restrict)
+
+  customerId    String?
+  customer      User?         @relation("CustomerTransactions", fields: [customerId], references: [id], onDelete: SetNull)
+
+  appointmentId String?       @unique
+  appointment   Appointment?  @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  transactionItems TransactionItem[]
+
+  @@index([staffId])
+  @@index([customerId])
+  @@index([status])
+  @@index([paidAt])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@map("transaction")
+}
+
+model TransactionItem {
+  id            String @id @default(cuid())
+  transactionId String
+  serviceId     String
+  serviceName   String // Snapshot
+  price         Float  // Snapshot
+  quantity      Int    @default(1)
+
+  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  service     Service     @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+
+  @@index([transactionId])
+  @@index([serviceId])
+  @@map("transaction_item")
+}
+
+model Payroll {
+  id              String   @id @default(cuid())
+  periodStart     DateTime
+  periodEnd       DateTime
+  baseSalary      Float    @default(0)
+  totalCommission Float    @default(0)
+  totalDeductions Float    @default(0)
+  totalBonuses    Float    @default(0)
+  netPay          Float    @default(0)
+  transactionCount Int     @default(0)
+  isPaid          Boolean  @default(false)
+  paidAt          DateTime?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  staffId String
+  staff   User   @relation(fields: [staffId], references: [id], onDelete: Restrict)
+
+  @@index([staffId])
+  @@index([periodStart, periodEnd])
+  @@index([isPaid])
+  @@map("payroll")
+}
+
+model SalaryHistory {
+  id             String   @id @default(cuid())
+  baseSalary     Float
+  commissionRate Float
+  effectiveDate  DateTime
+  notes          String?
+  createdAt      DateTime @default(now())
+
+  staffId String
+  staff   User   @relation(fields: [staffId], references: [id], onDelete: Restrict)
+
+  @@index([staffId])
+  @@index([effectiveDate])
+  @@map("salary_history")
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  action      String
+  entity      String
+  entityId    String?
+  description String?
+  metadata    Json?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("activity_log")
+}
+
+model BusinessSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  type      String   @default("string") // string, number, boolean, json
+  label     String?
+  group     String   @default("general")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+  @@index([group])
+  @@map("business_setting")
+}

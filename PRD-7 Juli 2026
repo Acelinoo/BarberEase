@@ -1,0 +1,60 @@
+# Product Requirements Document (PRD) & Progress Report: BarberEase
+
+BarberEase adalah sistem manajemen barbershop modern yang dirancang untuk mempermudah pemesanan online (*online booking*), transaksi langsung di toko (*walk-in POS*), penggajian otomatis staff (*automated payroll*), dan analitik bisnis.
+
+---
+
+## 🚀 Status Aplikasi Saat Ini
+* **Apakah sudah bisa dijalankan?** **Sudah.**
+* **Local Server URL**: [http://localhost:3000](http://localhost:3000) (Menggunakan perintah `npm run dev`).
+* **Halaman Aktif**: Halaman utama akan otomatis mengalihkan pengguna ke `/dashboard`, yang membutuhkan login. Jika belum masuk, pengguna akan diarahkan ke halaman login (`/login`) atau register (`/register`).
+
+---
+
+## 🛠️ Spesifikasi Teknologi
+* **Framework**: Next.js 16 (App Router, Turbopack)
+* **Database ORM**: Prisma Client
+* **Database Engine**: PostgreSQL (Supabase / Local Postgres)
+* **Autentikasi**: Better Auth (Email & Password, dengan otorisasi berbasis peran/role)
+* **UI/UX**: Tailwind CSS, Radix UI (shadcn/ui), Lucide Icons, Recharts (untuk grafik analitik)
+
+---
+
+## 📊 Matriks Fitur & Progress
+
+Berikut adalah daftar fitur utama beserta status implementasinya:
+
+| Modul / Fitur | Deskripsi | Status | Lokasi File Utama |
+| :--- | :--- | :--- | :--- |
+| **Autentikasi & Otorisasi** | Login, Register, Middleware Proteksi Rute berbasis Role (Admin, Staff, Customer) | **Selesai** | [login-form.tsx](file:///c:/Marchelino%20Kurniawan/Project-2026/BarberEase/src/features/auth/components/login-form.tsx) |
+| **Manajemen Booking (Pelanggan)** | Form reservasi online dengan pemilihan barber, tanggal, waktu (slot dinamis), dan layanan. | **Selesai / Siap Digunakan** | [booking-form.tsx](file:///c:/Marchelino%20Kurniawan/Project-2026/BarberEase/src/features/booking/components/booking-form.tsx) |
+| **Dashboard Pelanggan** | Melihat status booking aktif dan riwayat pemesanan. | **Selesai** | [page.tsx](file:///c:/Marchelino%20Kurniawan/Project-2026/BarberEase/src/app/dashboard/customer/page.tsx) |
+| **Dashboard Staff (Barber)** | Barber dapat melihat jadwal kerja harian, mengelola reservasi yang ditugaskan, dan POS kasir. | **Dalam Pengembangan** | [page.tsx](file:///c:/Marchelino%20Kurniawan/Project-2026/BarberEase/src/app/dashboard/staff/page.tsx) |
+| **Walk-in POS (Point of Sale)** | Kasir / Admin / Barber dapat menginput transaksi manual untuk pelanggan langsung. | **Dalam Pengembangan** | [actions.ts](file:///c:/Marchelino%20Kurniawan/Project-2026/BarberEase/src/features/pos/actions.ts) |
+| **Automated Payroll** | Perhitungan gaji pokok staff ditambah komisi berdasarkan transaksi layanan yang diselesaikan. | **Dalam Pengembangan** | [actions.ts](file:///c:/Marchelino%20Kurniawan/Project-2026/BarberEase/src/features/payroll/actions.ts) |
+| **Manajemen Layanan (Admin)** | Menambah, mengubah, dan menonaktifkan layanan barbershop beserta harganya. | **Selesai** | [page.tsx](file:///c:/Marchelino%20Kurniawan/Project-2026/BarberEase/src/app/dashboard/admin/services/page.tsx) |
+| **Analitik & Laporan (Admin)** | Visualisasi pendapatan harian/bulanan, performa barber, dan statistik booking. | **Selesai** | [admin-stats.tsx](file:///c:/Marchelino%20Kurniawan/Project-2026/BarberEase/src/features/admin/components/admin-stats.tsx) |
+
+---
+
+## 🗄️ Skema Database (Prisma Schema)
+Sistem ini menggunakan relasi database berikut:
+1. `User` (menyimpan data admin, barber/staff, pelanggan)
+2. `Service` (daftar layanan barbershop)
+3. `Appointment` (transaksi booking terjadwal)
+4. `Transaction` (transaksi pembayaran lunas, baik booking maupun walk-in)
+5. `Payroll` (laporan bulanan penggajian staff)
+6. `ActivityLog` (audit log untuk mencatat aktivitas admin/staff)
+
+---
+
+## 🎯 Langkah Selanjutnya
+1. Pastikan Anda memiliki server PostgreSQL yang berjalan, lalu jalankan migrasi database dengan:
+   ```bash
+   npx prisma migrate dev
+   ```
+2. Jalankan server lokal:
+   ```bash
+   npm run dev
+   ```
+3. Registrasikan akun baru melalui halaman `/register` untuk mencoba alur pelanggan.
